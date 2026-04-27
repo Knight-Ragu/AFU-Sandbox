@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>Sandbox</AssemblyName>
+    <Product>A mod that aims to add sandbox elements to Airframe Ultra</Product>
+    <Version>1.0.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>AfuSandbox</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="..\lib_b4\*.dll" Private="False" />
+  </ItemGroup>
+</Project>
