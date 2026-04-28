@@ -10,3 +10,16 @@
 /home/knigh/Repos/Airframe Mods/Noclip/obj/Debug/net6.0/refint/Sandbox.dll
 /home/knigh/Repos/Airframe Mods/Noclip/obj/Debug/net6.0/Sandbox.pdb
 /home/knigh/Repos/Airframe Mods/Noclip/obj/Debug/net6.0/ref/Sandbox.dll
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\bin\Debug\net6.0\Sandbox.deps.json
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\bin\Debug\net6.0\Sandbox.dll
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\bin\Debug\net6.0\Sandbox.pdb
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\AfuSandbox.csproj.AssemblyReference.cache
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\AfuSandbox.GeneratedMSBuildEditorConfig.editorconfig
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\AfuSandbox.AssemblyInfoInputs.cache
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\AfuSandbox.AssemblyInfo.cs
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\AfuSandbox.csproj.CoreCompileInputs.cache
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\AfuSandbox.sourcelink.json
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\Sandbox.dll
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\refint\Sandbox.dll
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\Sandbox.pdb
+D:\_AIRFRAME ULTRA\_Mods and tools\_RoseMods\AFU-Sandbox\obj\Debug\net6.0\ref\Sandbox.dll

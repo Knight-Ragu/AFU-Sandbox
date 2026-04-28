@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/home/knigh/Repos/Airframe Mods/Noclip/AfuSandbox.csproj": {}
+    "D:\\_AIRFRAME ULTRA\\_Mods and tools\\_RoseMods\\AFU-Sandbox\\AfuSandbox.csproj": {}
   },
   "projects": {
-    "/home/knigh/Repos/Airframe Mods/Noclip/AfuSandbox.csproj": {
+    "D:\\_AIRFRAME ULTRA\\_Mods and tools\\_RoseMods\\AFU-Sandbox\\AfuSandbox.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/knigh/Repos/Airframe Mods/Noclip/AfuSandbox.csproj",
+        "projectUniqueName": "D:\\_AIRFRAME ULTRA\\_Mods and tools\\_RoseMods\\AFU-Sandbox\\AfuSandbox.csproj",
         "projectName": "Sandbox",
-        "projectPath": "/home/knigh/Repos/Airframe Mods/Noclip/AfuSandbox.csproj",
-        "packagesPath": "/home/knigh/.nuget/packages/",
-        "outputPath": "/home/knigh/Repos/Airframe Mods/Noclip/obj/",
+        "projectPath": "D:\\_AIRFRAME ULTRA\\_Mods and tools\\_RoseMods\\AFU-Sandbox\\AfuSandbox.csproj",
+        "packagesPath": "C:\\Users\\taldo\\.nuget\\packages\\",
+        "outputPath": "D:\\_AIRFRAME ULTRA\\_Mods and tools\\_RoseMods\\AFU-Sandbox\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/knigh/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\taldo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -38,7 +44,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net6.0": {
@@ -62,6 +68,10 @@
             {
               "name": "Microsoft.NETCore.App.Ref",
               "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
             }
           ],
           "frameworkReferences": {
@@ -69,7 +79,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.104/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.203\\RuntimeIdentifierGraph.json"
         }
       }
     }
