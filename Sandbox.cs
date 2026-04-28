@@ -2,7 +2,13 @@
 using Il2CppPhoton.Deterministic;
 using Il2CppQuantum;
 using Il2CppQuantum.Core;
+using Il2CppQuantum.Physics2D;
+using Il2CppQuantum_Game;
+using Il2CppView_Equipment;
 using MelonLoader;
+using Mono.Cecil;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 [assembly: MelonInfo(typeof(AfuSandbox.Sandbox), "Noclip", "0.0.1", "Knight-Ragu", null)]
 [assembly: MelonGame("Videocult", "Airframe")]
@@ -12,8 +18,7 @@ namespace AfuSandbox;
 public partial class Sandbox : MelonMod
 {
     internal static MelonLogger.Instance Log => Melon<Sandbox>.Instance.LoggerInstance;
-
-
+    
     [HarmonyPatch(typeof(FrameContext), "OnFrameSimulationBegin")]
     private class Simulate
     {
@@ -21,6 +26,15 @@ public partial class Sandbox : MelonMod
         {            
             Il2CppSystem.Collections.Generic.List<EntityRef> refs = new();
             f.GetAllEntityRefs(refs);
+
+            // Check if toolgun has been fired and spawn something if so. 
+            if (last_spawn_pos != spawn_pos)
+            {
+                Log.Msg("changed");
+                //EntityRef planeRef = f.Create(plane);
+                //f.Get<Transform>(planeRef).position = spawn_pos;
+            }
+            last_spawn_pos = spawn_pos;
 
             unsafe { // Toggle flight
 
@@ -123,6 +137,18 @@ public partial class Sandbox : MelonMod
                 if (controller->StopFlying) f.Remove<FoamBlob>(r);
             }}
         }
+
+        // position used for spawning stuff
+        public static UnityEngine.Vector3 spawn_pos = new();
+        public static UnityEngine.Vector3 last_spawn_pos = new();
+        [HarmonyPatch(typeof(GunWeapon_View), "Shoot")]
+        private class GetSpawnPos
+        {
+            public static void Postfix(UnityEngine.Vector3 __result)
+            {
+                spawn_pos = __result;
+            }
+        }   
     }
 }
 
