@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/knigh/Repos/Airframe Mods/Noclip/AfuSandbox.csproj",
+      "projectUniqueName": "/home/knigh/Repos/Airframe Mods/AFU-Sandbox/AfuSandbox.csproj",
       "projectName": "Sandbox",
-      "projectPath": "/home/knigh/Repos/Airframe Mods/Noclip/AfuSandbox.csproj",
+      "projectPath": "/home/knigh/Repos/Airframe Mods/AFU-Sandbox/AfuSandbox.csproj",
       "packagesPath": "/home/knigh/.nuget/packages/",
-      "outputPath": "/home/knigh/Repos/Airframe Mods/Noclip/obj/",
+      "outputPath": "/home/knigh/Repos/Airframe Mods/AFU-Sandbox/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/knigh/.nuget/NuGet/NuGet.Config"
@@ -75,7 +75,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.104/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.109/RuntimeIdentifierGraph.json"
       }
     }
   }
