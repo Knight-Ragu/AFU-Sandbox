@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Il2CppInterop.Generator.Extensions;
-using Il2CppInterop.Runtime.Injection;
-using Il2CppPhoton.Deterministic;
 using Il2CppQuantum;
 using Il2CppView_Access;
 using JPInstaller;
 using JPInstaller.Custom;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(AfuSandbox.Sandbox), "AfuSandbox", "0.1.1", "Knight-Ragu", null)]
+[assembly: MelonInfo(typeof(AfuSandbox.Sandbox), "AfuSandbox", "0.2.1", "Knight-Ragu", null)]
 [assembly: MelonGame("Videocult", "Airframe")]
 
 namespace AfuSandbox;
@@ -60,12 +57,6 @@ public partial class Sandbox : QuantumMod
                 if (input->duck.IsDown && input->menu.WasPressed) 
                     Toolgun.Create(f, f.Get<Transform3D>(player->controlledEntity).Position);
 
-                if (input->duck.IsDown && input->menu.IsDown) 
-                {
-                    input->menu._frameUp = 1;
-                    input->menu._frameDown = 0;
-                }
-
                 RadialMenuSelector.Simulate(f, player, input);
             }
             else if (f.Has<HeldByHumanoid>(entity)) heldByHumanoids.Add(entity);
@@ -84,6 +75,12 @@ public partial class Sandbox : QuantumMod
     }
 }
 
+static class FrameExtensions
+{
+    public static EquipmentConfig EquipmentConfig(this Frame f)
+        => f.Context.ResourceManager.GetAsset(f.GameConfig().equipmentConfig.Id).Cast<EquipmentConfig>();
+}
+
 // [HarmonyPatch(typeof(DeterministicSession), nameof(DeterministicSession.SendCommand))]
 // class DeterministicSession_SendCommand_Patch
 // {
@@ -92,9 +89,3 @@ public partial class Sandbox : QuantumMod
 //         Sandbox .Log.Msg($"DeterministicSession.SendCommand: {Il2CppSystem.Environment.StackTrace}");
 //     }
 // }
-
-static class FrameExtensions
-{
-    public static EquipmentConfig EquipmentConfig(this Frame f)
-        => f.Context.ResourceManager.GetAsset(f.GameConfig().equipmentConfig.Id).Cast<EquipmentConfig>();
-}
