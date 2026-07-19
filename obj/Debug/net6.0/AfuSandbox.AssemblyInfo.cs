@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sandbox")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+efa53732e34e80b07974e809542320b8513a0bc8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1084001dc9f41a3e4b0b76810c7227e11504e2ff")]
 [assembly: System.Reflection.AssemblyProductAttribute("A mod that aims to add sandbox elements to Airframe Ultra")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sandbox")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

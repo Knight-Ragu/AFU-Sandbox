@@ -16,7 +16,7 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
     private int CustomID;
 
     public const int MAX_LAYERS = 8;
-    public const byte NO_SELECTION = 255;
+    public const byte NO_SELECTION = byte.MaxValue;
 
     public unsafe fixed byte Selections[MAX_LAYERS];
     public byte Depth = 1;
@@ -31,10 +31,10 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
         CustomID = id;
         return this;
     }
-
-    unsafe public byte GetLayerSelection(int layer, int length)
+     
+    public unsafe byte GetLayerSelection(int layer, int length)
     {
-        if (layer >= MAX_LAYERS) return byte.MaxValue;
+        if (layer >= MAX_LAYERS) return NO_SELECTION;
 
         byte index = 0;
 
@@ -42,6 +42,22 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
             index = selections[layer % length];
 
         return index;
+    }
+
+    public unsafe byte GetCurrentSelection(int length)
+        => this.GetLayerSelection(this.Depth, length);
+
+    public unsafe bool WasCancelledEarly()
+    {
+        bool WasCancelledEarly = false;
+
+        for (int i = 0; i < this.Depth; i++)
+        {
+            WasCancelledEarly = this.Selections[i] == NO_SELECTION;
+            Sandbox .Log.Msg($"can {this.Selections[i] == NO_SELECTION}, {this.Selections[i]}");
+        }
+
+        return WasCancelledEarly;
     }
 
     public T IndexMenu<T>(RadialMenu<T> menu)
@@ -70,6 +86,9 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
 
     public int CurrentSelectionEntryCount<T>(RadialMenu<T> menu)
     {
+        if (this.Depth == 0)
+            this.Depth = 1;
+
         RadialMenu<T> currentLayer = menu;
 
         for (int i = 0; i < Math.Min(Depth, (byte)MAX_LAYERS); i++)
@@ -127,11 +146,15 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
             if (cursorMagnitude > FP._0_50)
             {
                 FP angle = (FPMath.Atan2(selector->Cursor.X, -selector->Cursor.Y) / FP.PiTimes2) + FP._0_50;
-                selected = FPMath.FloorToInt(angle * FP.FromFloat_UNSAFE((float)entryCount));
+                selected = FPMath.FloorToInt((angle * FP.FromFloat_UNSAFE((float)entryCount)) - FP._0_10);
             }
-            else if (cursorMagnitude > FP._0_05)
+            else if (cursorMagnitude > FP._0_10)
             {
-                // Adding stuff here later                
+                if (selected == NO_SELECTION && input->trigger.WasPressed)
+                {
+                    selector->Depth--;
+                    selector->_refreshedUI = 0;
+                }          
             }
 
             selector->Selections[selector->Depth - 1] = (byte)selected;
@@ -139,12 +162,7 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
             if (selected != NO_SELECTION && input->trigger.WasPressed)
             {
                 selector->Depth++;
-
                 selector->_refreshedUI = 0;
-                entryCount = selector->CurrentSelectionEntryCount(menu);
-
-                for (int i = 0; i < MAX_LAYERS; i++)
-                    Sandbox .Log.Msg($"layer{i}: {selector->Selections[i]}");
             }
 
             // Gfx stuff
@@ -158,15 +176,17 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
                 return ret;
             });
 
+            int len = selector->CurrentSelectionEntryCount(menu);
+
             gfx.SelectedSection = selected;
             gfx.CursorPosition = selector->Cursor.ToUnityVector2();
-            gfx.Position = (f.Get<Transform3D>(player->controlledEntity).Position + forw + FPVector3.Up * FP._0_33).ToUnityVector3();
+            gfx.Position = (f.Get<Transform3D>(player->controlledEntity).Position + forw + FPVector3.Up * FP._0_50).ToUnityVector3();
             gfx.Forward = -forw.ToUnityVector3();
             
             if (selector->_refreshedUI == 0)
             {
                 selector->_refreshedUI++;
-                gfx.QueueCreateSections(entryCount);
+                gfx.QueueCreateSections(len);
                 gfx.transform.position = f.Get<Transform3D>(player->controlledEntity).Position.ToUnityVector3();
             }
         }

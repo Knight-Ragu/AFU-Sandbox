@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Http.Headers;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppQuantum;
@@ -29,13 +30,15 @@ public class RadialMenuGfx : MonoBehaviour
 {
     MeshFilter mF;
 
-    const int VERTICES_PER_SECTION = 7;
-    const int INDICES_PER_SECTION = 5 * 3;
+    const int VERTICES_PER_SECTION = 14;
+    const int INDICES_PER_SECTION = 24 * 3;
 
-    const int SELECTOR_VERTICES = 4;
-    const int SELECTOR_INDICES = 2 * 3;
+    const int SELECTOR_VERTICES = 4 + 3;
+    const int SELECTOR_INDICES = 3 * 3;
 
-    const float VISUAL_PADDING = 0.06f;
+    const float VISUAL_PADDING = 0.07f;
+
+    static Color orange = Color.Lerp(Color.yellow, Color.red, 0.6f);
 
 
     public Vector3 Position;
@@ -59,19 +62,6 @@ public class RadialMenuGfx : MonoBehaviour
         return rMG;
     }
 
-    public void Start()
-    {
-        mF = this.GetComponent<MeshFilter>();
-        var mR = this.GetComponent<MeshRenderer>();
-
-        mF.sharedMesh = new Mesh();
-        mR.sharedMaterial = Material.GetDefaultParticleMaterial(); // Shader.Find("Unlit")
-        mR.sharedMaterial.mainTexture = Texture2D.whiteTexture;
-
-        _cursorAnimation.Position = 0.0f;
-        _cursorAnimation.Color = Color.green;
-    }
-
     int createLater;
     public void QueueCreateSections(int sections)
         => createLater = sections;
@@ -85,14 +75,18 @@ public class RadialMenuGfx : MonoBehaviour
         mF.sharedMesh.vertices = new Il2CppStructArray<Vector3>(Sections.Length * VERTICES_PER_SECTION + SELECTOR_VERTICES);
         mF.sharedMesh.colors = new Il2CppStructArray<Color>(Sections.Length * VERTICES_PER_SECTION + SELECTOR_VERTICES);
 
-        Sandbox .Log.Msg($"len {mF.sharedMesh.vertices.Length}, {Sections.Length}");
+        // Sandbox .Log.Msg($"len {mF.sharedMesh.vertices.Length}, {Sections.Length}");
 
         mF.sharedMesh.triangles = new Il2CppStructArray<int>(Sections.Length * INDICES_PER_SECTION + SELECTOR_INDICES);
 
         Il2CppSystem.Collections.Generic.List<int> triangles = new();
         for (int i = 0; i < Sections.Length; i++)
         {
+            Sections[i] = new Section().Init(70f, 0f, orange, orange);
+
             int index = i * VERTICES_PER_SECTION;
+
+            // Front faces
 
             triangles.Add(index + 6);
             triangles.Add(index + 3);
@@ -113,6 +107,86 @@ public class RadialMenuGfx : MonoBehaviour
             triangles.Add(index + 4);
             triangles.Add(index + 5);
             triangles.Add(index + 0);
+
+            // Back faces
+            
+            triangles.Add(index + 7 + 6);
+            triangles.Add(index + 7 + 5);
+            triangles.Add(index + 7 + 3);
+
+            triangles.Add(index + 7 + 3);
+            triangles.Add(index + 7 + 5);
+            triangles.Add(index + 7 + 2);
+
+            triangles.Add(index + 7 + 1);
+            triangles.Add(index + 7 + 2);
+            triangles.Add(index + 7 + 5);
+
+            triangles.Add(index + 7 + 5);
+            triangles.Add(index + 7 + 0);
+            triangles.Add(index + 7 + 1);
+
+            triangles.Add(index + 7 + 4);
+            triangles.Add(index + 7 + 0);
+            triangles.Add(index + 7 + 5);
+
+            // Side faces
+
+            triangles.Add(index + 6);
+            triangles.Add(index + 7 + 6);
+            triangles.Add(index + 3);
+
+            triangles.Add(index + 7 + 6);
+            triangles.Add(index + 7 + 3);
+            triangles.Add(index + 3);
+
+            triangles.Add(index + 0);
+            triangles.Add(index + 7 + 0);
+            triangles.Add(index + 4);
+
+            triangles.Add(index + 7 + 0);
+            triangles.Add(index + 7 + 4);
+            triangles.Add(index + 4);
+
+            triangles.Add(index + 3);
+            triangles.Add(index + 7 + 3);
+            triangles.Add(index + 2);
+
+            triangles.Add(index + 7 + 3);
+            triangles.Add(index + 7 + 2);
+            triangles.Add(index + 2);
+
+            triangles.Add(index + 1);
+            triangles.Add(index + 7 + 1);
+            triangles.Add(index + 0);
+
+            triangles.Add(index + 7 + 1);
+            triangles.Add(index + 7 + 0);
+            triangles.Add(index + 0);
+
+            triangles.Add(index + 5);
+            triangles.Add(index + 7 + 5);
+            triangles.Add(index + 6);
+
+            triangles.Add(index + 7 + 5);
+            triangles.Add(index + 7 + 6);
+            triangles.Add(index + 6);
+
+            triangles.Add(index + 4);
+            triangles.Add(index + 7 + 4);
+            triangles.Add(index + 5);
+
+            triangles.Add(index + 7 + 4);
+            triangles.Add(index + 7 + 5);
+            triangles.Add(index + 5);
+
+            triangles.Add(index + 2);
+            triangles.Add(index + 7 + 2);
+            triangles.Add(index + 1);
+
+            triangles.Add(index + 7 + 2);
+            triangles.Add(index + 7 + 1);
+            triangles.Add(index + 1);
         }
 
         triangles.Add(mF.sharedMesh.vertices.Length - 1);
@@ -122,6 +196,10 @@ public class RadialMenuGfx : MonoBehaviour
         triangles.Add(mF.sharedMesh.vertices.Length - 4);
         triangles.Add(mF.sharedMesh.vertices.Length - 2);
         triangles.Add(mF.sharedMesh.vertices.Length - 1);
+
+        triangles.Add(mF.sharedMesh.vertices.Length - 5);
+        triangles.Add(mF.sharedMesh.vertices.Length - 6);
+        triangles.Add(mF.sharedMesh.vertices.Length - 7);
 
         mF.sharedMesh.SetTriangles(triangles, 0, true);
 
@@ -140,21 +218,25 @@ public class RadialMenuGfx : MonoBehaviour
         }
     }
 
+    public void Start()
+    {
+        mF = this.GetComponent<MeshFilter>();
+        var mR = this.GetComponent<MeshRenderer>();
+
+        mF.sharedMesh = new Mesh();
+        mR.sharedMaterial = Material.GetDefaultParticleMaterial(); // Shader.Find("Unlit")
+        mR.sharedMaterial.mainTexture = Texture2D.whiteTexture;
+
+        _cursorAnimation = _cursorAnimation.Init(0.0f, 0f, Color.yellow, orange);
+    }
+
     public void LateUpdate()
     {
-        transform.position = RadialMenuGfx.Section.ExpDecay(
-            transform.position,
-            this.Position,
-            11f,
-            Time.deltaTime
-        );
+        transform.position =
+            RadialMenuGfx.Section.ExpDecay(transform.position, this.Position, 12f, Time.deltaTime);
 
-        transform.forward = RadialMenuGfx.Section.ExpDecay(
-            transform.forward,
-            this.Forward,
-            15f,
-            UnityEngine.Time.deltaTime
-        );
+        transform.forward =
+            RadialMenuGfx.Section.ExpDecay(transform.forward, this.Forward, 7f, UnityEngine.Time.deltaTime);
 
         if (createLater != 256)
         {
@@ -166,22 +248,30 @@ public class RadialMenuGfx : MonoBehaviour
         {
             var section = Sections[i];
 
-            if (Time.time - this.timeCreated < 0.04f * i) continue;
+            if (Time.time - this.timeCreated < i * 0.04f) continue;
 
             section.Position = 1f;
             section.SizeMult = 1f;
-            section.Color = Color.yellow;
+            section.FrontColor = Color.yellow;
+            section.BackColor = orange;
 
             if (SelectedSection == i)
             {
-                section.SizeMult = 1.27f;
-                section.Color = Color.white;
+                section.SizeMult = 1.25f;
+                section.FrontColor = orange;
+                section.BackColor = Color.red;
             }
 
             section.Decay(Time.deltaTime);
 
             Sections[i] = section;
         }
+
+        _cursorAnimation.Position = SelectedSection == RadialMenuSelector.NO_SELECTION ? 0.095f : 0.12f;
+        _cursorAnimation.BackColor = orange;
+        _cursorAnimation.FrontColor = Color.yellow;
+
+        _cursorAnimation.Decay(Time.deltaTime);
 
         this.Draw();
     }
@@ -193,9 +283,11 @@ public class RadialMenuGfx : MonoBehaviour
         Vector3[] verts = new Vector3[mF.sharedMesh.vertices.Length];
         Color[] vertColors = new Color[mF.sharedMesh.vertices.Length];
 
+        // Section vertices
+
         for (int i = 0; i < this.Sections.Length; i++)
         {
-            var (bottomHeight, topHeight, color) = Sections[i].Info();
+            var (bottomHeight, topHeight, frontColor, backColor) = Sections[i].Info();
 
             float halfPadding = VISUAL_PADDING / 2f;
 
@@ -219,7 +311,9 @@ public class RadialMenuGfx : MonoBehaviour
                 // Sandbox .Log.Msg($"len {mF.sharedMesh.vertices.Length}, in: {vi + v}");
 
                 verts[vi + v] = position * topHeight;
-                vertColors[vi + v] = color;
+                verts[vi + 7 + v] = (position * topHeight) + new Vector3(0f, 0f, 0.10f);
+                vertColors[vi + v] = frontColor;
+                vertColors[vi + 7 + v] = backColor;
             }
 
             // Position the bottom row of vertices
@@ -235,26 +329,67 @@ public class RadialMenuGfx : MonoBehaviour
                 // Sandbox .Log.Msg($"len {mF.sharedMesh.vertices.Length}, in: {vi + 4 + v}");
  
                 verts[vi + 4 + v] = position * bottomHeight;
-                vertColors[vi + 4 + v] = color;
+                verts[vi + 4 + 7 + v] = (position * bottomHeight) + new Vector3(0f, 0f, 0.10f);
+                vertColors[vi + 4 + v] = frontColor;
+                vertColors[vi + 4 + 7 + v] = backColor;
             }
         }
 
-        _cursorAnimation.Position = SelectedSection == RadialMenuSelector.NO_SELECTION ? 0.06f : 0.13f;
-        _cursorAnimation.Decay(Time.deltaTime);
+        // Cursor vertices
 
-        var (cursorSize, _, cursorColor) = _cursorAnimation.Info();
+        var (cursorSize, _, frontCursorColor, backCursorColor) = _cursorAnimation.Info();
+
         var pos = CursorPosition * 0.24f;
         pos.x = -pos.x;
 
-        verts[^1] = (Vector3)pos + new Vector3(-cursorSize, cursorSize, 0.025f);
-        verts[^2] = (Vector3)pos + new Vector3(cursorSize, -cursorSize, 0.025f);
-        verts[^3] = (Vector3)pos + new Vector3(cursorSize, cursorSize, 0.025f);
-        verts[^4] = (Vector3)pos + new Vector3(-cursorSize, -cursorSize, 0.025f);
+        if (CursorPosition.magnitude > 0.1f)
+        {
+            var posNorm = pos.normalized;
+            var right = new Vector2(posNorm.y, -posNorm.x);
 
-        vertColors[^1] = cursorColor;
-        vertColors[^2] = cursorColor;
-        vertColors[^3] = cursorColor;
-        vertColors[^4] = cursorColor;
+            verts[^1] = right * cursorSize * 0.5f;
+            verts[^2] = pos + -right * cursorSize * 0.5f;
+            verts[^3] = -right * cursorSize * 0.5f;
+            verts[^4] = pos + right * cursorSize * 0.5f;
+
+            verts[^1] += new Vector3(0f, 0f, 0.02f);
+            verts[^2] += new Vector3(0f, 0f, 0.02f);
+            verts[^3] += new Vector3(0f, 0f, 0.02f);
+            verts[^4] += new Vector3(0f, 0f, 0.02f);
+
+            verts[^5] = pos + -right * cursorSize * 1.75f;
+            verts[^6] = pos + right * cursorSize * 1.75f;
+            verts[^7] = pos + posNorm * cursorSize * 1.75f;
+
+            verts[^5] += new Vector3(0f, 0f, 0.02f);
+            verts[^6] += new Vector3(0f, 0f, 0.02f);
+            verts[^7] += new Vector3(0f, 0f, 0.02f);
+
+            vertColors[^1] = backCursorColor;
+            vertColors[^2] = frontCursorColor;
+            vertColors[^3] = backCursorColor;
+            vertColors[^4] = frontCursorColor;
+        }
+        else
+        {
+            verts[^1] = (Vector3)pos + new Vector3(-cursorSize, cursorSize, 0.02f);
+            verts[^2] = (Vector3)pos + new Vector3(cursorSize, -cursorSize, 0.02f);
+            verts[^3] = (Vector3)pos + new Vector3(cursorSize, cursorSize, 0.02f);
+            verts[^4] = (Vector3)pos + new Vector3(-cursorSize, -cursorSize, 0.02f);
+
+            verts[^5] = Vector2.zero;
+            verts[^6] = Vector2.zero;
+            verts[^7] = Vector2.zero;
+
+            vertColors[^1] = backCursorColor;
+            vertColors[^2] = backCursorColor;
+            vertColors[^3] = backCursorColor;
+            vertColors[^4] = backCursorColor;
+        }
+
+        vertColors[^5] = frontCursorColor;
+        vertColors[^6] = frontCursorColor;
+        vertColors[^7] = frontCursorColor;
 
 
         mF.sharedMesh.SetVertices(verts);
@@ -272,19 +407,32 @@ public class RadialMenuGfx : MonoBehaviour
         private float _sizeMult = 0f;
         public float SizeMult = 1f;
 
-        public Color _color = Color.white;
-        public Color Color = Color.yellow;
+        public Color _frontColor;
+        public Color FrontColor = Color.yellow;
 
-        public readonly (float bottom, float top, Color color) Info()
-            => (_position * POSITION_SCALE, (_position * POSITION_SCALE) + (SECTION_SIZE * _sizeMult), _color);
+        public Color _backColor;
+        public Color BackColor = Color.yellow;
+
+        public readonly (float bottom, float top, Color frontColor, Color backColor) Info()
+            => (_position * POSITION_SCALE, (_position * POSITION_SCALE) + (SECTION_SIZE * _sizeMult), _frontColor, _backColor);
         
+        public Section Init(float position, float size, Color frontColor, Color backColor)
+        {
+            _position = position;
+            _sizeMult = size;
+            _frontColor = frontColor;
+            _backColor = backColor;
+
+            return this;
+        }
         public void Decay(float dt)
         {
             _sizeMult = ExpDecay(_sizeMult, SizeMult, 17f, dt);
             _position = ExpDecay(_position, Position, 14f, dt);
-            _color = ExpDecay(_color, Color, 5f, dt);
+            _frontColor = ExpDecay(_frontColor, FrontColor, 5f, dt);
+            _backColor = ExpDecay(_backColor, BackColor, 6f, dt);
 
-            _color.a = 0.5f;
+            _backColor.a = 0.5f;
         }
         
         public static dynamic ExpDecay(dynamic a, dynamic b, float decay, float dt)

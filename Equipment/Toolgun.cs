@@ -35,9 +35,10 @@ public unsafe struct Toolgun() : JPInstaller.Custom.IComponent
         if (input->weaponSecondary.IsDown)
             disablePrimary = true;
 
-        if (input->weaponSecondary.WasReleased && f.CustomTryGet<RadialMenuSelector>(humanoid, out var selection))
+        if (input->weaponSecondary.WasReleased && f.CustomTryGet<RadialMenuSelector>(humanoid, out var selector))
         {
-            toolgun->selectedPrototype = selection;
+            if (!selector.WasCancelledEarly())
+                toolgun->selectedPrototype = selector;
             
             Sandbox.RemoveRadialMenu(f, humanoid);
         }
@@ -83,6 +84,7 @@ public unsafe struct Toolgun() : JPInstaller.Custom.IComponent
         ((Toolgun*)f.GetPointer<Equipment>(eRef))->CustomId = 1000;
         f.Remove<Gun>(eRef);
         f.CustomSet(eRef, new Toolgun());
+        f.GetPointer<Transform3D>(eRef)->Position = position;
 
         return eRef;
     }
