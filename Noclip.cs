@@ -7,7 +7,7 @@ namespace AfuSandbox;
 
 internal static class Noclip
 {
-    internal unsafe static void NoClip(Frame f, EntityRef entity, Player* player)
+    internal static unsafe void Simulate(Frame f, EntityRef entity, Player* player)
     {
         // Flight toggle
 
@@ -18,10 +18,7 @@ internal static class Noclip
             {
                 if (player->holdBuy >= 10)
                 {
-                    Sandbox.Log.Msg("holdBuy");
-                    unsafe {
-                        controller->StopFlying = true;
-                    }
+                    controller->StopFlying = true;
                 }
 
                 NoClipMove(f, entity, player, controller);
@@ -31,7 +28,6 @@ internal static class Noclip
                 if (player->holdBuy >= 10 && (input.buttonsHeld & btnMask) == btnMask)
                 {
                     player->holdBuy = -1;
-                    Sandbox.Log.Msg($"holdBuy2 {player->holdBuy}");
 
                     (bool onBike, EntityRef eRef) controlled = (false, player->controlledEntity);
 

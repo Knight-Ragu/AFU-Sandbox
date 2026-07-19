@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using Il2CppHUD;
@@ -12,7 +13,7 @@ namespace AfuSandbox;
 public static class CustomEquipment
 {
     const int ZERO_ID = 999;
-    private static Dictionary<int, EquipmentData> customEquipment = [];
+    private readonly static Dictionary<int, EquipmentData> customEquipment = [];
 
 
     unsafe public static int AsInt(this EquipmentID eqID)
@@ -75,6 +76,8 @@ public class EquipmentData()
 {
     public string Name = "CustomEquipment";
     public HUD_Access.EquipmentColor Type = HUD_Access.EquipmentColor.None;
+
+    public unsafe Action<Frame, IntPtr, EntityRef, EntityRef> OnHeld;
 }
 
 ////////////////////////////////////////////////////////////////////

@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using HarmonyLib;
+using Il2CppInterop.Generator.Extensions;
+using Il2CppInterop.Runtime.Injection;
 using Il2CppPhoton.Deterministic;
 using Il2CppQuantum;
-using Il2CppQuantum.Core;
-using Il2CppQuantum_Game;
 using Il2CppView_Access;
 using JPInstaller;
 using JPInstaller.Custom;
@@ -21,19 +21,22 @@ public partial class Sandbox : QuantumMod
    
     internal static AllEntityRefs _eRefs = null;
 
-    // public static EntityPrototype Toolgun = EntityPrototype.Create();
-
     public override void OnInitializeMelon()
     {
+        this.RegisterTypes();
+        
         CustomManager.RegisterCustomComponent<NoclipController>();
+        CustomManager.RegisterCustomComponent<RadialMenuSelector>();
         CustomManager.RegisterCustomComponent<Toolgun>();
 
-        CustomEquipment.RegisterEquipment(new EquipmentData { Name = nameof(Toolgun), Type = HUD_Access.EquipmentColor.Weapon });
-
-        // Toolgun.Container = ComponentPrototypeSet.FromArray(new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<ComponentPrototype>([
-        //     new ComponentPrototype { ComponentType = JPInstaller.Custom.CustomManager }
-        // ]));
+        CustomEquipment.RegisterEquipment(new EquipmentData {
+            Name = nameof(Toolgun),
+            Type = HUD_Access.EquipmentColor.Weapon,
+            OnHeld = Toolgun.OnHeld,
+        });
     }
+
+    partial void RegisterTypes();
 
     public unsafe override void Simulate(Frame f, AllEntityRefs eRefs)
     {
@@ -43,59 +46,41 @@ public partial class Sandbox : QuantumMod
         List<EntityRef> heldByHumanoids = [];
 
         foreach (var entity in eRefs.Iter())
-            if (f.Has<Player>(entity)) players.Add(entity);
-            else if (f.Has<HeldByHumanoid>(entity)) heldByHumanoids.Add(entity);
-
-        foreach (var playerEntity in players)
-        {
-            Player* player = f.GetPointer<Player>(playerEntity);
-
-            if (!f.Exists(player->controlledEntity)) continue;
-
-            var input = f.GetPlayerInput(player->playerRef);
-
-            if (input->menu.IsDown && input->duck.IsDown)
+            if (f.Has<Player>(entity))
             {
-                input->menu = new Button {
-                    _frameCurrent = input->menu._frameCurrent,
-                    _frameDown = 0,
-                    _frameUp = 1
-                };
+                players.Add(entity);
 
-                
+                Player* player = f.GetPointer<Player>(entity);
+                var input = f.GetPlayerInput(player->playerRef);
+
+                Noclip.Simulate(f, entity, player);
+
+                if (!f.Exists(player->controlledEntity)) continue;
+
+                if (input->duck.IsDown && input->menu.WasPressed) 
+                    Toolgun.Create(f, f.Get<Transform3D>(player->controlledEntity).Position);
+
+                if (input->duck.IsDown && input->menu.IsDown) 
+                {
+                    input->menu._frameUp = 1;
+                    input->menu._frameDown = 0;
+                }
+
+                RadialMenuSelector.Simulate(f, player, input);
             }
-
-            Noclip.NoClip(f, playerEntity, player);
-        }
+            else if (f.Has<HeldByHumanoid>(entity)) heldByHumanoids.Add(entity);
 
         foreach (var heldByHumanoidEntity in heldByHumanoids)
         {
             EntityRef humanoid = f.Get<HeldByHumanoid>(heldByHumanoidEntity).humanoidEntity;
-            Toolgun* equipment = (Toolgun*)f.GetPointer<Equipment>(heldByHumanoidEntity);
-            Input* input = f.GetPlayerInput(players.Select(f.Get<Player>).First(p => p.controlledEntity == humanoid).playerRef);
+            Equipment equipment = f.Get<Equipment>(heldByHumanoidEntity);
+            void* input = f.GetPlayerInput(players.Select(f.Get<Player>).First(p => p.controlledEntity == humanoid).playerRef);
 
-            switch (equipment->CustomId)
+            if (CustomEquipment.TryGetEquipmentData(equipment.eqID, out var data))
             {
-                case 1000:
-                    Toolgun.SimulateHeld(f, input, humanoid, heldByHumanoidEntity);
-                break;
+                data.OnHeld(f, new IntPtr(input), humanoid, heldByHumanoidEntity);
             }
         }
-    }
-}
-
-[HarmonyPatch(typeof(BikeRespawnSystem), nameof(BikeRespawnSystem.SpawnBike))]
-class BikeRespawnSystem_SpawnBike_Patch
-{
-    static unsafe void Postfix(FrameBase __0)
-    {
-        if (__0.TryCast<Frame>() is not Frame f) return;
-
-        Toolgun.Create(f, FPVector3.Up * FP._0_10);
-
-        
-        // Toolgun* pointer = (Toolgun*)f.GetPointer<Equipment>(rev);
-        // pointer->CustomId = 36;
     }
 }
 
