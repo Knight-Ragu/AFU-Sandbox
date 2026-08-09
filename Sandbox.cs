@@ -6,8 +6,9 @@ using Il2CppView_Access;
 using JPInstaller;
 using JPInstaller.Custom;
 using MelonLoader;
+using MelonLoader.Utils;
 
-[assembly: MelonInfo(typeof(AfuSandbox.Sandbox), "AfuSandbox", "0.2.1", "Knight-Ragu", null)]
+[assembly: MelonInfo(typeof(AfuSandbox.Sandbox), "AfuSandbox", "0.3.1", "Knight-Ragu", null)]
 [assembly: MelonGame("Videocult", "Airframe")]
 
 namespace AfuSandbox;
@@ -15,11 +16,14 @@ namespace AfuSandbox;
 public partial class Sandbox : QuantumMod
 {
     internal static MelonLogger.Instance Log => Melon<Sandbox>.Instance.LoggerInstance;
+
+    internal static string Data => MelonEnvironment.UserDataDirectory + "\\Sandbox";
+    internal static string Assets => Data + "\\assets";
    
     internal static AllEntityRefs _eRefs = null;
 
     public override void OnInitializeMelon()
-    {
+    {   
         this.RegisterTypes();
         
         CustomManager.RegisterCustomComponent<NoclipController>();
@@ -31,6 +35,8 @@ public partial class Sandbox : QuantumMod
             Type = HUD_Access.EquipmentColor.Weapon,
             OnHeld = Toolgun.OnHeld,
         });
+
+        Sounds.LoadSounds();
     }
 
     partial void RegisterTypes();
@@ -39,13 +45,13 @@ public partial class Sandbox : QuantumMod
     {
         _eRefs = eRefs;
 
-        List<EntityRef> players = [];
+        List<EntityRef> playersERefs = [];
         List<EntityRef> heldByHumanoids = [];
 
         foreach (var entity in eRefs.Iter())
             if (f.Has<Player>(entity))
             {
-                players.Add(entity);
+                playersERefs.Add(entity);
 
                 Player* player = f.GetPointer<Player>(entity);
                 var input = f.GetPlayerInput(player->playerRef);
@@ -54,22 +60,24 @@ public partial class Sandbox : QuantumMod
 
                 if (!f.Exists(player->controlledEntity)) continue;
 
-                if (input->duck.IsDown && input->menu.WasPressed) 
-                    Toolgun.Create(f, f.Get<Transform3D>(player->controlledEntity).Position);
+                if (input->duck.IsDown && input->menu.WasPressed)
+                    EquipmentExtensions.GrabEquipment(f, Toolgun.Create(f, f.Get<Transform3D>(player->controlledEntity).Position), player->controlledEntity);
 
                 RadialMenuSelector.Simulate(f, player, input);
             }
             else if (f.Has<HeldByHumanoid>(entity)) heldByHumanoids.Add(entity);
+        
+        Player[] players = [.. playersERefs.Select(f.Get<Player>)];
 
         foreach (var heldByHumanoidEntity in heldByHumanoids)
         {
             EntityRef humanoid = f.Get<HeldByHumanoid>(heldByHumanoidEntity).humanoidEntity;
             Equipment equipment = f.Get<Equipment>(heldByHumanoidEntity);
-            void* input = f.GetPlayerInput(players.Select(f.Get<Player>).First(p => p.controlledEntity == humanoid).playerRef);
+            Player player = players.First(p => p.controlledEntity == humanoid);
 
             if (CustomEquipment.TryGetEquipmentData(equipment.eqID, out var data))
             {
-                data.OnHeld(f, new IntPtr(input), humanoid, heldByHumanoidEntity);
+                data.OnHeld(f, player, humanoid, heldByHumanoidEntity);
             }
         }
     }

@@ -52,10 +52,7 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
         bool WasCancelledEarly = false;
 
         for (int i = 0; i < this.Depth; i++)
-        {
             WasCancelledEarly = this.Selections[i] == NO_SELECTION;
-            Sandbox .Log.Msg($"can {this.Selections[i] == NO_SELECTION}, {this.Selections[i]}");
-        }
 
         return WasCancelledEarly;
     }
@@ -167,12 +164,12 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
 
             // Gfx stuff
 
-            FPMath.SinCos(player->cameraState.aimAngles.X * FP.Deg2Rad, out var sin, out var cos);
-            var forw = new FPVector3(sin, FP._0, cos);
+            FPVector3 aimDir = player->cameraState.AimDir();
+            FPVector3 humanoidPosition = f.Get<Transform3D>(player->controlledEntity).Position;
 
             var gfx = Sandbox.radialMenuGfx.GetOrCreate(player->controlledEntity, k => {
                 var ret = RadialMenuGfx.Create(player->controlledEntity);
-                ret.transform.right = forw.ToUnityVector3();
+                ret.transform.forward = -aimDir.ToUnityVector3();
                 return ret;
             });
 
@@ -180,8 +177,8 @@ public struct RadialMenuSelector() : JPInstaller.Custom.IComponent
 
             gfx.SelectedSection = selected;
             gfx.CursorPosition = selector->Cursor.ToUnityVector2();
-            gfx.Position = (f.Get<Transform3D>(player->controlledEntity).Position + forw + FPVector3.Up * FP._0_50).ToUnityVector3();
-            gfx.Forward = -forw.ToUnityVector3();
+            gfx.Position = (humanoidPosition + (FPVector3.Up * (FP._0_50 + FP._0_10)) + aimDir).ToUnityVector3();
+            gfx.Forward = -aimDir.ToUnityVector3();
             
             if (selector->_refreshedUI == 0)
             {

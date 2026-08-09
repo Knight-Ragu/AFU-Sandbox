@@ -2,6 +2,9 @@ using System;
 using System.Runtime.InteropServices;
 using Il2CppPhoton.Deterministic;
 using Il2CppQuantum;
+using Il2CppQuantum.Physics3D;
+using Il2CppQuantum_Core;
+using Il2CppView_Humanoid;
 using JPInstaller.Custom;
 
 namespace AfuSandbox;
@@ -23,9 +26,9 @@ public unsafe struct Toolgun() : JPInstaller.Custom.IComponent
     }
 
 
-    public static unsafe void OnHeld(Frame f, IntPtr inputPointer, EntityRef humanoid, EntityRef pickup)
+    public static unsafe void OnHeld(Frame f, Player player, EntityRef humanoid, EntityRef pickup)
     {
-        Input* input = (Input*)inputPointer;
+        Input* input = f.GetPlayerInput(player.playerRef);
         var toolgun = f.CustomGetPointer<Toolgun>(pickup);
         bool disablePrimary = false;
 
@@ -56,17 +59,38 @@ public unsafe struct Toolgun() : JPInstaller.Custom.IComponent
             input->trigger._frameDown = 0;
         }
             
-        // Sandbox .Log.Msg($"{toolgun->cooldown}, {input->trigger._frameCurrent}, {input->trigger._frameUp}, {input->trigger._frameDown}");
+        // Primary Fire
 
         if (input->trigger.IsDown)
         {
             if (toolgun->cooldown == 0)
             {
-                toolgun->cooldown = FIRE_RATE;
-                toolgun->SpawnPrototype(f, f.Get<Transform3D>(humanoid).Position);
-
                 input->trigger._frameUp = 1;
                 input->trigger._frameDown = 0;
+
+                var humanoidPosition = f.Get<Transform3D>(humanoid).Position;
+
+                FPVector3 aimDir = player.cameraState.AimDir() * FP._100;
+                FPVector3 spawnPosition = humanoidPosition + aimDir;
+
+                toolgun->cooldown = FIRE_RATE;
+
+                if (Raycasts.StaticTerrainLineCast(f, humanoidPosition, spawnPosition, out Hit3D hit))
+                    spawnPosition =  hit.Point + hit.Normal * FP._0_33;
+
+                toolgun->SpawnPrototype(f, spawnPosition);
+
+                Sandbox .Log.Msg($"focusPos: {player.cameraState.focusPos}");
+
+                Humanoid_View view = UnityEngine.GameObject.Find(humanoid.ToString()).GetComponent<Humanoid_View>();
+                view.holdWeaponParams.weaponAnimationType = Humanoid_View.HoldWeaponParams.WeaponAnimationType.SmallGun;
+
+                view.AddAnimation(new GunAnimation(view));
+
+                view.gunAnimation.eqID = EquipmentID.Revolver;
+                view.gunAnimation.Shoot(FPMathUtils.ToUnityVector3(aimDir), 0.1f, 25.0f, 0.1f);
+
+                Sounds.PlaySound(0, 4, 2.5f, 1.0f, FPMathUtils.ToUnityVector3(humanoidPosition));
             }
         }
 

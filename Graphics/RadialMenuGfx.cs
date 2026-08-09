@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http.Headers;
+using Il2CppInterop.Generator.Passes;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppQuantum;
+using Il2CppQuantum_Weapons;
 using JPInstaller.Custom;
 using UnityEngine;
 
@@ -36,9 +38,11 @@ public class RadialMenuGfx : MonoBehaviour
     const int SELECTOR_VERTICES = 4 + 3;
     const int SELECTOR_INDICES = 3 * 3;
 
-    const float VISUAL_PADDING = 0.07f;
+    const float VISUAL_PADDING = 0.016f;
 
-    static Color orange = Color.Lerp(Color.yellow, Color.red, 0.6f);
+    static Color PrimaryColor = new(72f / 255f, 189f / 255f, 162f / 255f);
+    static Color SecondaryColor = new(80f / 255f, 69f / 255f, 108f / 255f);
+    static Color TertiaryColor = new(235f / 255f, 83f / 255f, 77f / 255f);
 
 
     public Vector3 Position;
@@ -48,16 +52,17 @@ public class RadialMenuGfx : MonoBehaviour
     private float timeCreated = 0f;
 
     public int SelectedSection;
+    public int lastSelectedSection;
     private Section _cursorAnimation;
     public Vector2 CursorPosition;
 
     public static RadialMenuGfx Create(EntityRef humanoid)
     {
-        GameObject gameObject = new($"{humanoid} RadialMenu");
+        GameObject radialMenu = new($"{humanoid} RadialMenu");
 
-        gameObject.AddComponent<MeshFilter>();
-        gameObject.AddComponent<MeshRenderer>();
-        var rMG = gameObject.AddComponent<RadialMenuGfx>();
+        radialMenu.AddComponent<MeshFilter>();
+        radialMenu.AddComponent<MeshRenderer>();
+        var rMG = radialMenu.AddComponent<RadialMenuGfx>();
 
         return rMG;
     }
@@ -82,7 +87,7 @@ public class RadialMenuGfx : MonoBehaviour
         Il2CppSystem.Collections.Generic.List<int> triangles = new();
         for (int i = 0; i < Sections.Length; i++)
         {
-            Sections[i] = new Section().Init(70f, 0f, orange, orange);
+            Sections[i] = new Section().Init(120f, 0f, SecondaryColor, SecondaryColor);
 
             int index = i * VERTICES_PER_SECTION;
 
@@ -213,7 +218,7 @@ public class RadialMenuGfx : MonoBehaviour
             for (int v = 0; v < VERTICES_PER_SECTION; v++)
             {
                 verts[vi + v] = Vector3.zero;
-                vertColors[vi + v] = Color.yellow;
+                vertColors[vi + v] = PrimaryColor;
             }
         }
     }
@@ -227,7 +232,7 @@ public class RadialMenuGfx : MonoBehaviour
         mR.sharedMaterial = Material.GetDefaultParticleMaterial(); // Shader.Find("Unlit")
         mR.sharedMaterial.mainTexture = Texture2D.whiteTexture;
 
-        _cursorAnimation = _cursorAnimation.Init(0.0f, 0f, Color.yellow, orange);
+        _cursorAnimation = _cursorAnimation.Init(0.0f, 0f, PrimaryColor, SecondaryColor);
     }
 
     public void LateUpdate()
@@ -236,7 +241,12 @@ public class RadialMenuGfx : MonoBehaviour
             RadialMenuGfx.Section.ExpDecay(transform.position, this.Position, 12f, Time.deltaTime);
 
         transform.forward =
-            RadialMenuGfx.Section.ExpDecay(transform.forward, this.Forward, 7f, UnityEngine.Time.deltaTime);
+            RadialMenuGfx.Section.ExpDecay(transform.forward, this.Forward, 7f, Time.deltaTime);
+        
+        if (lastSelectedSection != SelectedSection)
+        {
+            // Add sound effect later
+        }
 
         if (createLater != 256)
         {
@@ -246,20 +256,20 @@ public class RadialMenuGfx : MonoBehaviour
 
         for (int i = 0; i < this.Sections.Length; i++)
         {
-            var section = Sections[i];
+            if (Time.time - this.timeCreated < i * 0.036f) continue;
 
-            if (Time.time - this.timeCreated < i * 0.04f) continue;
+            var section = Sections[i];
 
             section.Position = 1f;
             section.SizeMult = 1f;
-            section.FrontColor = Color.yellow;
-            section.BackColor = orange;
+            section.FrontColor = PrimaryColor;
+            section.BackColor = SecondaryColor;
 
             if (SelectedSection == i)
             {
                 section.SizeMult = 1.25f;
-                section.FrontColor = orange;
-                section.BackColor = Color.red;
+                section.FrontColor = SecondaryColor;
+                section.BackColor = TertiaryColor;
             }
 
             section.Decay(Time.deltaTime);
@@ -268,12 +278,14 @@ public class RadialMenuGfx : MonoBehaviour
         }
 
         _cursorAnimation.Position = SelectedSection == RadialMenuSelector.NO_SELECTION ? 0.095f : 0.12f;
-        _cursorAnimation.BackColor = orange;
-        _cursorAnimation.FrontColor = Color.yellow;
+        _cursorAnimation.BackColor = SecondaryColor;
+        _cursorAnimation.FrontColor = PrimaryColor;
 
         _cursorAnimation.Decay(Time.deltaTime);
 
         this.Draw();
+
+        lastSelectedSection = SelectedSection;
     }
 
     void Draw()
@@ -288,14 +300,16 @@ public class RadialMenuGfx : MonoBehaviour
         for (int i = 0; i < this.Sections.Length; i++)
         {
             var (bottomHeight, topHeight, frontColor, backColor) = Sections[i].Info();
-
-            float halfPadding = VISUAL_PADDING / 2f;
+            var (_, topBackHeight, _, _) = Sections[i].Info(0.45f);
 
             // This angle is in Turns (1.0 Turn == 360.0 Degrees)
-            float startingAngle = (i / (float)Sections.Length) + halfPadding;
+            float startingAngle = i / (float)Sections.Length;
             float oneSection = 1.0f / (float)Sections.Length;
 
             int vi = i * VERTICES_PER_SECTION;
+
+            float a = (startingAngle + (oneSection * 0.5f)) * (Mathf.PI * 2.0f);
+            Vector3 paddingVec = new(Mathf.Sin(a), Mathf.Cos(a), 0.0f);
 
             // Position the top row of vertices
 
@@ -304,14 +318,13 @@ public class RadialMenuGfx : MonoBehaviour
                 float angle = startingAngle + (v / 3.0f * oneSection);
                 // Convert to Radians before using
                 angle *= Mathf.PI * 2.0f;
-                angle -= VISUAL_PADDING * (v / 3.0f);
 
                 Vector3 position = new(Mathf.Sin(angle), Mathf.Cos(angle), 0.0f);
  
                 // Sandbox .Log.Msg($"len {mF.sharedMesh.vertices.Length}, in: {vi + v}");
 
-                verts[vi + v] = position * topHeight;
-                verts[vi + 7 + v] = (position * topHeight) + new Vector3(0f, 0f, 0.10f);
+                verts[vi + v] = (position * topBackHeight) + new Vector3(0f, 0f, -0.10f);
+                verts[vi + 7 + v] = position * topHeight;
                 vertColors[vi + v] = frontColor;
                 vertColors[vi + 7 + v] = backColor;
             }
@@ -321,18 +334,21 @@ public class RadialMenuGfx : MonoBehaviour
             for (int v = 0; v < 3; v++)
             {
                 float angle = startingAngle + (v / 2.0f * oneSection);
+                // Convert to Radians before using
                 angle *= Mathf.PI * 2.0f;
-                angle -= VISUAL_PADDING * (v / 2.0f);
 
                 Vector3 position = new(Mathf.Sin(angle), Mathf.Cos(angle), 0.0f);
 
                 // Sandbox .Log.Msg($"len {mF.sharedMesh.vertices.Length}, in: {vi + 4 + v}");
  
-                verts[vi + 4 + v] = position * bottomHeight;
-                verts[vi + 4 + 7 + v] = (position * bottomHeight) + new Vector3(0f, 0f, 0.10f);
+                verts[vi + 4 + v] = (position * bottomHeight) + new Vector3(0f, 0f, -0.10f);
+                verts[vi + 4 + 7 + v] = position * bottomHeight;
                 vertColors[vi + 4 + v] = frontColor;
                 vertColors[vi + 4 + 7 + v] = backColor;
             }
+
+            for (int v = 0; v < 14; v++)
+                verts[vi + v] += paddingVec * VISUAL_PADDING;
         }
 
         // Cursor vertices
@@ -408,13 +424,13 @@ public class RadialMenuGfx : MonoBehaviour
         public float SizeMult = 1f;
 
         public Color _frontColor;
-        public Color FrontColor = Color.yellow;
+        public Color FrontColor = PrimaryColor;
 
         public Color _backColor;
-        public Color BackColor = Color.yellow;
-
-        public readonly (float bottom, float top, Color frontColor, Color backColor) Info()
-            => (_position * POSITION_SCALE, (_position * POSITION_SCALE) + (SECTION_SIZE * _sizeMult), _frontColor, _backColor);
+        public Color BackColor = PrimaryColor;
+        
+        public readonly (float bottom, float top, Color frontColor, Color backColor) Info(float scale = 1.0f)
+            => (_position * POSITION_SCALE, (_position * POSITION_SCALE) + (SECTION_SIZE * _sizeMult * scale), _frontColor, _backColor);
         
         public Section Init(float position, float size, Color frontColor, Color backColor)
         {
@@ -429,8 +445,8 @@ public class RadialMenuGfx : MonoBehaviour
         {
             _sizeMult = ExpDecay(_sizeMult, SizeMult, 17f, dt);
             _position = ExpDecay(_position, Position, 14f, dt);
-            _frontColor = ExpDecay(_frontColor, FrontColor, 5f, dt);
-            _backColor = ExpDecay(_backColor, BackColor, 6f, dt);
+            _frontColor = ExpDecay(_frontColor, FrontColor, 8f, dt);
+            _backColor = ExpDecay(_backColor, BackColor, 10f, dt);
 
             _backColor.a = 0.5f;
         }

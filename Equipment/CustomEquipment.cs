@@ -77,7 +77,7 @@ public class EquipmentData()
     public string Name = "CustomEquipment";
     public HUD_Access.EquipmentColor Type = HUD_Access.EquipmentColor.None;
 
-    public unsafe Action<Frame, IntPtr, EntityRef, EntityRef> OnHeld;
+    public unsafe Action<Frame, Player, EntityRef, EntityRef> OnHeld;
 }
 
 ////////////////////////////////////////////////////////////////////
